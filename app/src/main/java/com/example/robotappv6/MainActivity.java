@@ -13,7 +13,9 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -26,6 +28,12 @@ import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
 
+    static final String MAIN_TAG = "MainTag";
+
+    private Button buttonKeyControlActivity;
+    private Button buttonGyroControlActivity;
+
+    //TODO przenieść wszystko do osobnej klasy - chodzi o bluetootha
     BluetoothManager bluetoothManager;
     BluetoothAdapter bluetoothAdapter;
     Set<BluetoothDevice> pairedDevices;
@@ -35,20 +43,7 @@ public class MainActivity extends AppCompatActivity {
     InputStream inputStream;
     OutputStream outputStream;
 
-    TextView textView;
-    TextView directionTextView;
-
     Direct direction = new Direct();
-    Button buttonFF;
-    Button buttonFL;
-    Button buttonFR;
-    Button buttonLL;
-    Button buttonRR;
-    Button buttonBB;
-    Button buttonBR;
-    Button buttonBL;
-
-    Slider directionSpeedSlider;
 
     @RequiresApi(api = Build.VERSION_CODES.S)
     @Override
@@ -56,20 +51,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        Log.d(MAIN_TAG, "Stworzenie mainActivity");
+
         setContentView(R.layout.activity_main);
-        textView = findViewById(R.id.textField);
-        directionTextView = findViewById(R.id.directionTextView);
 
-        buttonFF = findViewById(R.id.buttonFF);
-        buttonFL = findViewById(R.id.buttonFL);
-        buttonFR = findViewById(R.id.buttonFR);
-        buttonRR = findViewById(R.id.buttonRR);
-        buttonLL = findViewById(R.id.buttonLL);
-        buttonBB = findViewById(R.id.buttonBB);
-        buttonBL = findViewById(R.id.buttonBL);
-        buttonBR = findViewById(R.id.buttonBR);
-
-        directionSpeedSlider = findViewById(R.id.directionSpeedSlider);
+        buttonKeyControlActivity = findViewById(R.id.buttonKeyControl);
+        buttonGyroControlActivity = findViewById(R.id.buttonGyroControl);
 
         bluetoothManager = getSystemService(BluetoothManager.class);
         bluetoothAdapter = bluetoothManager.getAdapter();
@@ -100,142 +87,22 @@ public class MainActivity extends AppCompatActivity {
             bluetoothSocket.connect();
             inputStream = bluetoothSocket.getInputStream();
             outputStream = bluetoothSocket.getOutputStream();
-            textView.setText("Polaczono do arduino");
         }
         catch (Exception e) {
-            textView.setText("Nie poloczono do arduino");
         }
 
-        directionTextView.setText("SS000");
-
-        directionSpeedSlider.addOnChangeListener((slider, value, fromUser) -> direction.setSliderSpeed(value));
-
-        buttonFF.setOnTouchListener((v, event) -> {
-            if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                direction.setDirection(true, false, false, false);
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
+        buttonKeyControlActivity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, KeyControlActivity.class));
             }
-            else if(event.getAction() == MotionEvent.ACTION_UP) {
-                direction.stopDirection();
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
-            }
-            return false;
         });
 
-        buttonBB.setOnTouchListener((v, event) -> {
-            if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                direction.setDirection(false, true, false, false);
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
+        buttonGyroControlActivity.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(new Intent(MainActivity.this, GyroControlActivity.class));
             }
-            else if(event.getAction() == MotionEvent.ACTION_UP) {
-                direction.stopDirection();
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
-            }
-            return false;
-        });
-
-        buttonFL.setOnTouchListener((v, event) -> {
-            if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                direction.setDirection(true, false, false, true);
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
-            }
-            else if(event.getAction() == MotionEvent.ACTION_UP) {
-                direction.stopDirection();
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
-            }
-            return false;
-        });
-
-        buttonFR.setOnTouchListener((v, event) -> {
-            if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                direction.setDirection(true, false, true, false);
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
-            }
-            else if(event.getAction() == MotionEvent.ACTION_UP) {
-                direction.stopDirection();
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
-            }
-            return false;
-        });
-
-        buttonBL.setOnTouchListener((v, event) -> {
-            if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                direction.setDirection(false, true, false, true);
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
-            }
-            else if(event.getAction() == MotionEvent.ACTION_UP) {
-                direction.stopDirection();
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
-            }
-            return false;
-        });
-
-        buttonBR.setOnTouchListener((v, event) -> {
-            if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                direction.setDirection(false, true, true, false);
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
-            }
-            else if(event.getAction() == MotionEvent.ACTION_UP) {
-                direction.stopDirection();
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
-            }
-            return false;
-        });
-
-        buttonRR.setOnTouchListener((v, event) -> {
-            if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                direction.setDirection(false, false, true, false);
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
-            }
-            else if(event.getAction() == MotionEvent.ACTION_UP) {
-                direction.stopDirection();
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
-            }
-            return false;
-        });
-
-        buttonLL.setOnTouchListener((v, event) -> {
-            if(event.getAction() == MotionEvent.ACTION_DOWN) {
-                direction.setDirection(false, false, false, true);
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
-            }
-            else if(event.getAction() == MotionEvent.ACTION_UP) {
-                direction.stopDirection();
-                direction.sendDirection(outputStream);
-                direction.updateTextDirection(directionTextView);
-                return true;
-            }
-            return false;
         });
 
     }
