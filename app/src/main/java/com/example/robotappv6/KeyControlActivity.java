@@ -8,6 +8,15 @@ import android.widget.Button;
 
 public class KeyControlActivity extends AppCompatActivity {
 
+    Button buttonFF = findViewById(R.id.buttonFF);
+    Button buttonFR = findViewById(R.id.buttonFR);
+    Button buttonFL = findViewById(R.id.buttonFL);
+    Button buttonRR = findViewById(R.id.buttonRR);
+    Button buttonLL = findViewById(R.id.buttonLL);
+    Button buttonBB = findViewById(R.id.buttonBB);
+    Button buttonBR = findViewById(R.id.buttonBR);
+    Button buttonBL = findViewById(R.id.buttonBL);
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,5 +37,6 @@ public class KeyControlActivity extends AppCompatActivity {
 //            }
 //            return false;
 //        });
+
     }
 }
