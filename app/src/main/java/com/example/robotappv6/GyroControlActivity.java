@@ -39,20 +39,27 @@ public class GyroControlActivity extends AppCompatActivity implements SensorEven
 
     }
 
+    float timestamp;
+    float NS2S = 1.0f / 1_000_000_000.0f;
+
     @Override
     public void onSensorChanged(SensorEvent event) {
 
-        float xPosition = imageViewCircle.getTranslationX();
-        float yPosition = imageViewCircle.getTranslationY();
+        if(timestamp != 0) {
+            final float dt = (event.timestamp - timestamp)*NS2S;
 
-        xPosition += event.values[1]*70;
-        yPosition += event.values[0]*140;
+            float xPosition = imageViewCircle.getTranslationX();
+            float yPosition = imageViewCircle.getTranslationY();
 
-        Log.d(GYRO_CONTROL_TAG, "TimeStamp: " + event.timestamp);
+            xPosition += event.values[1]*10/dt;
+            yPosition += event.values[0]*20/dt;
 
-        imageViewCircle.setTranslationX(xPosition);
-        imageViewCircle.setTranslationY(yPosition);
+            Log.d(GYRO_CONTROL_TAG, "TimeStamp: " + event.timestamp);
 
+            imageViewCircle.setTranslationX(xPosition);
+            imageViewCircle.setTranslationY(yPosition);
+        }
+        timestamp = event.timestamp;
         //Log.d(GYRO_CONTROL_TAG, "Kolo x: " + imageViewCircle.getTranslationX());
         //Log.d(GYRO_CONTROL_TAG, "kolo y: " + imageViewCircle.getTranslationY());
     }
