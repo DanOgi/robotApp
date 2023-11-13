@@ -9,7 +9,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,6 +20,7 @@ import android.util.Log;
 import android.view.MotionEvent;
 import android.widget.Button;
 import android.Manifest;
+import android.widget.TextView;
 
 import com.google.android.material.slider.Slider;
 
@@ -41,21 +45,26 @@ public class KeyControlActivity extends AppCompatActivity {
 
     Slider slider;
 
+    TextView textViewVoltage;
 
     BluetoothManager bluetoothManager;
 
     BluetoothAdapter bluetoothAdapter;
     BluetoothDevice arduinoDevice = null;
     BluetoothSocket bluetoothSocket;
+    IntentFilter intentFilter;
 
     Set<BluetoothDevice> pairedDevices;
 
     InputStream inputStream;
     OutputStream outputStream;
 
-    @RequiresApi(api = Build.VERSION_CODES.S)
+    RxThread rxThread;
+    String inputData = "";
+
     @Override
     @SuppressLint("ClickableViewAccessibility")
+    @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
@@ -66,6 +75,11 @@ public class KeyControlActivity extends AppCompatActivity {
 
         bluetoothManager = getSystemService(BluetoothManager.class);
         bluetoothAdapter = bluetoothManager.getAdapter();
+
+        intentFilter = new IntentFilter();
+        intentFilter.addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED);
+
+        rxThread = new RxThread();
 
         if(checkSelfPermission(Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_DENIED) {
             requestPermissions(new String[] {Manifest.permission.BLUETOOTH_CONNECT}, 100);
@@ -94,6 +108,7 @@ public class KeyControlActivity extends AppCompatActivity {
             Log.d(KEY_CONTROL_TAG, "Polaczono z bluetooth");
             inputStream = bluetoothSocket.getInputStream();
             outputStream = bluetoothSocket.getOutputStream();
+            rxThread.start();
         }
         catch (Exception e) {
             Log.e(KEY_CONTROL_TAG, "Nie polaczono z bluetooth");
@@ -111,6 +126,8 @@ public class KeyControlActivity extends AppCompatActivity {
         buttonBL = findViewById(R.id.buttonBL);
 
         slider = findViewById(R.id.sliderSpeed);
+
+        textViewVoltage = findViewById(R.id.textViewVoltage);
 
         slider.addOnChangeListener(new Slider.OnChangeListener() {
             @Override
@@ -290,6 +307,50 @@ public class KeyControlActivity extends AppCompatActivity {
             }
             return false;
         });
-
     }
+
+    class RxThread extends Thread {
+        public boolean isRunning;
+        byte[] data;
+        RxThread() {
+            Log.d(KEY_CONTROL_TAG, "Stworzono watek");
+            isRunning = true;
+            data = new byte[128];
+        }
+        @RequiresApi(api = Build.VERSION_CODES.TIRAMISU)
+        @Override
+        public void run() {
+            while (isRunning) {
+                try {
+                    if(inputStream.available() > 2) {
+                        Log.d(KEY_CONTROL_TAG, "Przyjeto dane");
+                        inputStream.read(data);
+                        inputData = new String(data);
+                    }
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(!inputData.equals("")) {
+                                textViewVoltage.setText(inputData);
+                                inputData = "";
+                            }
+                        }
+                    });
+                    Thread.sleep(100);
+                } catch (Exception e) {
+
+                }
+            }
+        }
+    }
+    BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case BluetoothDevice.ACTION_ACL_DISCONNECTED:
+                    rxThread.isRunning = false;
+                    break;
+            }
+        }
+    };
 }
