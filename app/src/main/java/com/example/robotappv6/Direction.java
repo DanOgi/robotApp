@@ -1,12 +1,13 @@
 package com.example.robotappv6;
 
+import android.util.Log;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
 import java.io.OutputStream;
 
-public class Direct {
+public class Direction {
     private boolean forward = false;
     private boolean backward = false;
     private boolean right = false;
@@ -24,7 +25,7 @@ public class Direct {
     String getDirection() {
         String str;
         this.setSpeedDirection();
-        int speed = (int)(255 * (this.speed / 100));
+        int speed = (int)(this.speed*255);
         if(this.forward && !this.backward && !this.right && !this.left) {
             str = "FF";
         }
@@ -65,6 +66,7 @@ public class Direct {
 
     void sendDirection(@NonNull OutputStream outputStream) {
         try{
+            Log.d("DirectionTag", "Wyslano: " + getDirection());
             outputStream.write(getDirection().getBytes());
         }catch (Exception ignored) {
 
@@ -76,7 +78,18 @@ public class Direct {
     }
 
     void setSpeedDirection() {
-        this.speed = this.sliderSpeed;
+            this.speed = this.sliderSpeed;
     }
-    void setSliderSpeed(float speed) {this.sliderSpeed = speed;}
+    void setSliderSpeed(float speed) {
+        this.sliderSpeed = speed;
+    }
+
+    void setSpeed(int speed) {
+        if (speed > 255) {
+            this.speed = 255.0f;
+        }
+        else {
+            this.speed = (float)speed;
+        }
+    }
 }

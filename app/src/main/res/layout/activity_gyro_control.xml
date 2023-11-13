@@ -24,4 +24,11 @@
         android:layout_centerInParent="true"
         android:src="@drawable/circle" />
 
+    <ImageView
+        android:layout_width="400dp"
+        android:layout_height="400dp"
+        android:layout_centerInParent="true"
+        android:contentDescription="Pole"
+        android:src="@drawable/circle_gyro_field" />
+
 </RelativeLayout>
