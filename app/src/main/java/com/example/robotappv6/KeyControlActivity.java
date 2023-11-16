@@ -331,7 +331,7 @@ public class KeyControlActivity extends AppCompatActivity {
                         @Override
                         public void run() {
                             if(!inputData.equals("")) {
-                                textViewVoltage.setText(inputData);
+                                textViewVoltage.setText("Napięcie na ogniwach: " + inputData);
                                 inputData = "";
                             }
                         }

@@ -11,6 +11,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -22,6 +23,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -34,6 +36,7 @@ public class GyroControlActivity extends AppCompatActivity implements SensorEven
     Direction direction = new Direction();
 
     ImageView imageViewCircle;
+    TextView textViewVoltage;
     private final String GYRO_CONTROL_TAG = "GyroControlTag";
 
     BluetoothDevice arduinoDevice = null;
@@ -41,6 +44,9 @@ public class GyroControlActivity extends AppCompatActivity implements SensorEven
 
     InputStream inputStream;
     OutputStream outputStream;
+
+    RxThread rxThread;
+    String inputData = "";
 
     @RequiresApi(api = Build.VERSION_CODES.S)
     @Override
@@ -79,6 +85,7 @@ public class GyroControlActivity extends AppCompatActivity implements SensorEven
             Log.d(GYRO_CONTROL_TAG, "Polaczono z bluetooth");
             inputStream = bluetoothSocket.getInputStream();
             outputStream = bluetoothSocket.getOutputStream();
+            rxThread.start();
         }
         catch (Exception e) {
             Log.e(GYRO_CONTROL_TAG, "Nie polaczono z bluetooth");
@@ -89,6 +96,7 @@ public class GyroControlActivity extends AppCompatActivity implements SensorEven
         setContentView(R.layout.activity_gyro_control);
 
         imageViewCircle = findViewById(R.id.imageViewCircle);
+        textViewVoltage = findViewById(R.id.textViewVoltageGyro);
 
         Log.d(GYRO_CONTROL_TAG, "Inicjalizowanie sensora");
 
@@ -191,4 +199,45 @@ public class GyroControlActivity extends AppCompatActivity implements SensorEven
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
 
     }
+    class RxThread extends Thread {
+        public boolean isRunning;
+        byte[] data;
+        RxThread() {
+            isRunning = true;
+            data = new byte[128];
+        }
+
+        public void run() {
+            while (isRunning) {
+                try {
+                    if(inputStream.available() > 2) {
+                        inputStream.read(data);
+                        inputData = new String(data);
+                    }
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(!inputData.equals("")) {
+                                textViewVoltage.setText("Napięcie na ogniwach: " + inputData);
+                            }
+                        }
+                    });
+                    Thread.sleep(100);
+                } catch (Exception e) {
+
+                }
+            }
+        }
+    }
+    BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case BluetoothDevice.ACTION_ACL_DISCONNECTED:
+                    rxThread.isRunning = false;
+                    break;
+            }
+        }
+    };
 }
