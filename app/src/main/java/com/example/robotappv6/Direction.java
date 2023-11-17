@@ -92,4 +92,19 @@ public class Direction {
             this.speed = (float)speed;
         }
     }
+    void setLeft(boolean v) {
+        left = v;
+    }
+
+    void setRight(boolean v) {
+        right = v;
+    }
+
+    void setForward(boolean v) {
+        forward = v;
+    }
+
+    void setBackward(boolean v) {
+        backward = v;
+    }
 }

@@ -3,6 +3,7 @@ package com.example.robotappv6;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
@@ -353,4 +354,26 @@ public class KeyControlActivity extends AppCompatActivity {
             }
         }
     };
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
+            try {
+                bluetoothSocket.connect();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            return;
+        }
+    }
+
+    @Override
+    protected  void onPause() {
+        super.onPause();
+        try {
+            bluetoothSocket.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }
