@@ -114,7 +114,11 @@ public class GyroControlActivity extends AppCompatActivity {
         textViewVoltage = findViewById(R.id.textViewVoltageGyro);
         displayMetrics = getResources().getDisplayMetrics();
 
+        Log.d(GYRO_CONTROL_TAG, "tag1");
+
         final float scale = displayMetrics.density;
+
+        Log.d(GYRO_CONTROL_TAG, "tag2");
 
         float pixels = (175 * scale + 0.5f);
         rvListener = new SensorEventListener() {
@@ -347,25 +351,21 @@ public class GyroControlActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-            try {
-                bluetoothSocket.connect();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            return;
-        }
         sensorManager.registerListener(rvListener, rotationSensor, 2*1000*1000);
     }
 
     @Override
     protected  void onPause() {
         super.onPause();
+        sensorManager.unregisterListener(rvListener);
+    }
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         try {
             bluetoothSocket.close();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        sensorManager.unregisterListener(rvListener);
     }
 }

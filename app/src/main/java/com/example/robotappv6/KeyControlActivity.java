@@ -357,19 +357,18 @@ public class KeyControlActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) == PackageManager.PERMISSION_GRANTED) {
-            try {
-                bluetoothSocket.connect();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            return;
-        }
+        Log.d(KEY_CONTROL_TAG,"WZNOWIENIE");
     }
 
     @Override
     protected  void onPause() {
         super.onPause();
+        Log.d(KEY_CONTROL_TAG,"PAUZA");
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
         try {
             bluetoothSocket.close();
         } catch (IOException e) {
